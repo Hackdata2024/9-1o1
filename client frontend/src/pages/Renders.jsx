@@ -64,6 +64,18 @@ function Renders({ commander_id }) {
       });
   }, [userId]);
 
+  const ProgressBar = ({ numerator, denominator }) => {
+    // Calculate the percentage completion
+    const percentage = (numerator / denominator) * 100;
+  
+    return (
+      <div className="progress-bar" style={{ width: "50%", height: "10px", border: "1px solid #ccc", borderRadius: "5px", overflow: "hidden" }}>
+        <div className="progress-bar-fill" style={{ width: `${percentage}%`, height: "100%", backgroundColor: "black" }}>
+        </div>
+      </div>
+    );
+  };
+
   const RenderingComponentStatus = () => {
     if (!commander_id) {
       return (
@@ -106,16 +118,20 @@ function Renders({ commander_id }) {
         status.split("/")[0] !== "0"
       ) {
         // setRendered(true);
-        render_data = null;
-        render_data = null;
+        // render_data = null;
+        // render_data = null;
       }
     }, [status]);
 
     return (
       <div>
-        <h1>Active Renders</h1>
-        <p>Rendering...</p>
-        <p>{status}</p>
+        {/* <h1>Active Renders</h1> */}
+        <p>Rendering in Progress status : {status}</p>
+        {/* Progress bar */}
+        <ProgressBar
+          numerator={parseInt(status.split("/")[0])}
+          denominator={parseInt(status.split("/")[1])}
+        />
       </div>
     );
   };
