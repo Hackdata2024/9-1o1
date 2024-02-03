@@ -45,6 +45,7 @@ class Worker(Client):
             file = base64.b64decode(file)
             start_frame = task["start_frame"]
             end_frame = task["end_frame"]
+            fps = task["fps"]
             # create folder
             folder_name = f"worker_blend_files/{self.ID}"
             if not os.path.exists(folder_name):
@@ -68,7 +69,7 @@ class Worker(Client):
             if not os.path.exists(folder_name+"/images"):
                 os.mkdir(folder_name+"/images")
             # command = f'{blender_path} -b {folder_name}/{file_name} -o {folder_name}/images/ -F {output_format} -x 1 -s {start_frame} -e {end_frame} -a'
-            image_thread = threading.Thread(target=self.send_images, args=(folder_name, start_frame, end_frame))
+            image_thread = threading.Thread(target=self.send_images, args=(folder_name, start_frame, end_frame, fps))
             image_thread.start()
             # subprocess.call(f'"{blender_path}" -b "{folder_name}/{file_name}" -o "{folder_name}/images/" -F {output_format} -x 1 -s {start_frame} -e {end_frame} -a', shell=False)
             command = [
@@ -86,7 +87,7 @@ class Worker(Client):
             # shutil.rmtree(f"{folder_name}/images")
             # stdout, stderr = process.communicate()
             
-    def send_images(self, folder_name, start_frame, end_frame):
+    def send_images(self, folder_name, start_frame, end_frame, fps):
         i=0
         while i < end_frame-start_frame+1:
             images = os.listdir(folder_name+"/images/")
@@ -108,7 +109,8 @@ class Worker(Client):
             self.send_message({
                 "frame": base64.b64encode(file).decode('utf-8'),
                 # "frame_num": int(images[0])+start_frame
-                "frame_num": int(images[0].split(".")[0])
+                "frame_num": int(images[0].split(".")[0]),
+                "fps": fps
             })
             print(f"[INFO] Sent frame {int(images[0].split('.')[0])}")
             i+=1
