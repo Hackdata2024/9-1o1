@@ -66,66 +66,52 @@ function Home() {
       setShowInputForm(false);
     };
 
-    return (
-      <div className="input-form-card">
-        <button className="close-button" onClick={handleClose}>
-          X
-        </button>
-        <label htmlFor="projectName">Project Name:</label>
-        <input
-          id="projectName"
-          type="text"
-          placeholder="Enter the project name"
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
-        />
-        <br />
-        <label htmlFor="fileInput">Select File:</label>
-        <input
-          type="file"
-          accept=".blend"
-          id="fileInput"
-          onChange={(e) => handleFileChange(e)}
-        />
-        <br />
-        <label htmlFor="framesInput">Number of Frames:</label>
-        <input
-          id="framesInput"
-          type="text"
-          placeholder="Enter the number of frames to render"
-          value={numberOfFrames}
-          onChange={(e) => setNumberOfFrames(e.target.value)}
-        />
-        <br />
-        <label htmlFor="fpsInput">FPS:</label> &nbsp;
-        <input
-          id="fpsInput"
-          type="number"
-          placeholder="Enter the fps"
-          value={fps}
-          onChange={(e) => setFps(e.target.value)}
-        />
-        <br />
-        <button onClick={handleSubmit} disabled={!numberOfFrames}>
-          Render
-        </button>
-        <br />
-      </div>
-    );
-  };
-
   return (
-    <div className="home-container">
-      <div className="nav">
-        {showInputForm ? (
-          <InputForm />
-        ) : (
-          <button onClick={() => setShowInputForm(true)}>Upload</button>
-        )}
-        <UserButton />
-      </div>
-      <Renders commander_id={commander_id} />
-    </div>
+    <>
+      <label htmlFor="projectName">Project Name :</label>
+      <input
+        id="projectName"
+        type="text"
+        placeholder="Enter the project name"
+        value={projectName}
+        onChange={(e) => setProjectName(e.target.value)}
+      />
+      <br />
+      {/* <h1>Upload your .blend file :</h1> */}
+      <label htmlFor="fileInput">Select File:</label>
+      <input
+        type="file"
+        accept=".blend"
+        id="fileInput"
+        onChange={(e) => handleFileChange(e)}
+      />
+      <br />
+      <label htmlFor="framesInput">Number of frames :</label>
+      <input
+        id="framesInput"
+        type="text"
+        placeholder="Enter the number of frames to render"
+        value={numberOfFrames}
+        onChange={(e) => setNumberOfFrames(e.target.value)}
+      />
+      <br />
+      <label htmlFor="fpsInput">FPS :</label> &nbsp;
+      <input
+        id="fpsInput"
+        type="number"
+        placeholder="Enter the fps"
+        value={fps}
+        onChange={(e) => setFps(e.target.value)}
+      />
+      <br />
+      <button onClick={handleRender} disabled={!numberOfFrames}>
+        Render
+      </button>
+      <br />
+      <Renders 
+        commander_id={commander_id}
+      />
+    </>
   );
 }
 

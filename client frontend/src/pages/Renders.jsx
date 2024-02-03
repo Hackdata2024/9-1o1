@@ -9,9 +9,6 @@ function Renders({ commander_id }) {
   const [userId, setUserId] = useState("");
   const user = useUser().user;
   const [renders, setRenders] = useState([]);
-  const [rendered, setRendered] = useState(true);
-  const [videoProcessing, setVideoProcessing] = useState(false);
-  const [props, setProps] = useState(render_data);
   useEffect(() => {
     setUserId(user.id);
   }, []);
@@ -110,6 +107,7 @@ function Renders({ commander_id }) {
       ) {
         // setRendered(true);
         render_data = null;
+        render_data = null;
       }
     }, [status]);
 
@@ -154,6 +152,10 @@ function Renders({ commander_id }) {
     </div>
   );
 }
+
+Renders.propTypes = {
+  render_data: PropTypes.object,
+};
 
 Renders.propTypes = {
   render_data: PropTypes.object,
