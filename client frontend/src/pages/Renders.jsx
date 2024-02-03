@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
-import PropTypes from "prop-types";
 
 import axios from "axios";
 const backendUrl = "http://localhost:3000";
@@ -151,9 +150,5 @@ function Renders({ commander_id }) {
     </div>
   );
 }
-
-Renders.propTypes = {
-  commander_id: PropTypes.string,
-};
 
 export default Renders;
