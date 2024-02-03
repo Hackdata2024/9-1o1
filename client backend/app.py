@@ -69,6 +69,19 @@ class Commander(Client):
             os.mkdir(output_folder)
         
         self.no_of_frames = end_frame - start_frame + 1
+        print(f"[INFO] Waiting for server to render {self.no_of_frames} frames")
+
+        frames_rendered = 0
+        while frames_rendered < self.no_of_frames:
+            message = self.receive_message()
+            if message is None:
+                return False
+            if message["message"] == "frame_rendered":
+                frames_rendered += 1
+                print(f"[INFO] Frame {frames_rendered} rendered out of {self.no_of_frames}frames", end="\r")
+            else:
+                return False
+
         message = self.receive_message()
         if message is None:
             return False
@@ -128,7 +141,7 @@ async def upload_file(data : uploadData):
 
         result = c.message_server(file_content)
 
-        
+
 
         if result:
             session = Session(engine)

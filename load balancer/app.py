@@ -156,6 +156,10 @@ class Server:
             # self.result_queue.put(message)
             # print(self.result_queue.qsize())
             i += 1
+            
+            commander_socket, commander_address = self.commanders[commander_id]
+            self.send_message({"message": "frame_rendered"}, commander_socket)
+
         
 
     def handle_commander(self, commander_socket, commander_address):
