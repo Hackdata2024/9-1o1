@@ -64,6 +64,64 @@ class Server:
             elif client_type == "commander":
                 threading.Thread(target=self.handle_commander, args=(client_socket, client_address)).start()
 
+    def handle_result_queue(self):
+        while True:
+            with self.lock:
+                p_queue = (self.present_queue + 1) % 2
+            if self.result_queues[p_queue].empty():
+                p_queue = self.present_queue
+            result = self.result_queues[p_queue].get()
+
+            commander_id = result["commander_id"]
+            self.commander_status[commander_id] = "busy"
+            commander_socket, commander_address = self.commanders[commander_id]
+
+            output_folder = f"server_blend_files/{commander_id}/results"
+            if not os.path.exists(output_folder):
+                os.mkdir(output_folder)
+            frame_num = result["frame_num"]
+            f = open(f"{output_folder}/{frame_num}.png", "wb")
+            f.write(base64.b64decode(result["frame"]))
+            f.close()
+
+            self.result_sent_lengths[commander_id] += 1
+            # print(f"[INFO] Received result for frame {frame_num} of commander {commander_id}", end="\r")
+            print(f"[INFO] {self.result_sent_lengths[commander_id]} / {self.result_lengths[commander_id]} frames received for commander {commander_id}", end="\r")
+            if self.result_sent_lengths[commander_id] == self.result_lengths[commander_id]:
+                self.send_message({"message": "rendered"}, commander_socket)
+                print(f"[INFO] All results are Rendered for commander {commander_id}")
+                # zip only the results folder
+                os.chdir(f"server_blend_files/{commander_id}")
+
+                os.system(f"zip -r results.zip ./results")
+                # send the zip file
+                f = open("results.zip", "rb")
+                file = f.read()
+                f.close()
+                message = {
+                    "file_name": "results.zip",
+                    "file": base64.b64encode(file).decode('utf-8'),
+                    }
+                self.send_message(message, commander_socket)
+                print(f"[INFO] Results sent to commander {commander_id}")
+                self.commander_status[commander_id] = "idle"
+
+    def worker_health_check(self):
+        while True:
+            worker_ids = list(self.workers.keys())
+            for worker_id in worker_ids:
+                file_no = self.workers[worker_id][0].fileno()
+                if file_no == -1:
+                    self.workers.pop(worker_id)
+                    self.worker_status.pop(worker_id)
+                    if worker_id in self.assigned_tasks:
+                        self.message_queue.put(self.assigned_tasks[worker_id])
+                        self.assigned_tasks.pop(worker_id)
+                    print(f"[INFO] Worker {worker_id} disconnected from server")
+                else:
+                    print(f"[INFO] Worker {worker_id} health check passed with file no {file_no}")
+            time.sleep(1)
+                
 
     def handle_worker_send(self, worker_socket, worker_id):
         while True:
@@ -154,10 +212,36 @@ class Server:
                 message_to_send["start_frame"] = start_frame
                 message_to_send["end_frame"] = end_frame
                 self.add_message_to_queue(message_to_send, commander_id, i)
-            self.commander_status[commander_id] = "busy"
-  
+            self.commander_status[commander_id] = "busy"      
                 
-        
+
+    def add_message_to_queue(self, message, commander_id, index):
+        message_received = {
+                "commander_id": commander_id,
+                "message": message,
+                "timestamp": time.time(),
+                "message_id": nanoid.generate(size=10),
+                "message_type": "task",
+                "chunk_number": index
+            }
+        # self.message_queue.put(message_received)
+        self.all_messages[commander_id].put(message_received)
+        print(f"[INFO] Message added to message queue")
+        # print(self.all_messages)
+        # print(f"[INFO] Message added to message queue")
+
+    def order_messages(self):
+        while True:
+            # Make a copy of the keys to ensure the loop considers new keys
+            commander_ids = list(self.all_messages.keys())
+            # print(f"[INFO] Commander IDs: {commander_ids}")
+            for commander_id in commander_ids:
+                if not self.all_messages[commander_id].empty():
+                    # print(f"[INFO] Message queue size for commander {commander_id}: {self.all_messages[commander_id].qsize()}")
+                    message = self.all_messages[commander_id].get()
+                    self.message_queue.put(message)
+                    # print(f"[INFO] Message of commander {commander_id} added to message queue")
+
     def receive_message(self, connection):
         try:
             size_data = connection.recv(HEADER_SIZE)
@@ -200,38 +284,6 @@ class Server:
             conn.send(size_data)
             conn.sendall(message_bytes)
             # print(f"[INFO] Message size sent successfully. Waiting for acknowledgment...")
-
-            # Receive acknowledgment for the size
-            # if not self.wait_for_ack(conn):
-            #     print("[ERROR] Failed to send message size acknowledgment")
-            #     return
-
-            # Send the message in chunks with retries
-            # chunk_size = DATA_SIZE_PER_PACKET
-            # count = 0
-            # remaining_size = size
-            # for i in range(0, size, chunk_size):
-            #     if remaining_size < chunk_size:
-            #         chunk_size = remaining_size
-            #     chunk = message_bytes[i:i + chunk_size]
-            #     remaining_size -= chunk_size
-            #     # count += 1
-            #     conn.send(chunk)
-                # print(f"[INFO] Chunk {count} sent successfully")
-                # Receive acknowledgment for the chunk
-                # if not self.wait_for_ack(conn):
-                    # print("[ERROR] Failed to send message chunk acknowledgment. Retrying...")
-                    # Retry sending the chunk
-                    # for retry_count in range(max_retries):
-                    #     time.sleep(retry_interval)
-                    #     conn.send(chunk)
-                    #     if self.wait_for_ack(conn):
-                    #         break
-                    # else:
-                    #     print("[ERROR] Maximum retries reached. Failed to send message chunk.")
-                    #     return
-
-            # print(f"[INFO] Message sent successfully.")
 
         except socket.error as e:
             print(f"[ERROR] Failed to send message: {e}")
