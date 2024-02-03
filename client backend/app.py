@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from client import Client
 from constants import PORT
@@ -7,7 +7,7 @@ import base64
 import os
 import uvicorn
 import threading
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, HTMLResponse
 from fastapi import HTTPException
 from starlette.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -28,6 +28,9 @@ db_config = {
 
 app = FastAPI()
 
+rendered = dict()
+is_rendered = dict()
+total_frames = dict()
 
 class Commander(Client):
     def __init__(self, IP, port):
@@ -66,14 +69,16 @@ class Commander(Client):
         self.no_of_frames = end_frame - start_frame + 1
         print(f"[INFO] Waiting for server to render {self.no_of_frames} frames")
 
-        frames_rendered = 0
-        while frames_rendered < self.no_of_frames:
+        rendered[self.ID] = 0
+        total_frames[self.ID] = self.no_of_frames
+        while rendered[self.ID] < self.no_of_frames:
             message = self.receive_message()
             if message is None:
                 return False
             if message["message"] == "frame_rendered":
-                frames_rendered += 1
-                print(f"[INFO] Frame {frames_rendered} rendered out of {self.no_of_frames}frames", end="\r")
+                rendered[self.ID] += 1
+                
+                print(f"[INFO] Frame {rendered[self.ID]} rendered out of {self.no_of_frames}frames", end="\r")
             else:
                 return False
 
@@ -104,8 +109,12 @@ class Commander(Client):
             f = open(f"{output_folder}/{self.ID}/{video_name}", "wb")
             f.write(base64.b64decode(video))
             f.close()
+            
+            
+            is_rendered[self.ID] = True
 
-            return f"{output_folder}/{self.ID}"             
+            # return f"{output_folder}/{self.ID}/{file_name}"   
+            return True         
         else:
             return False
 
@@ -126,31 +135,31 @@ app.add_middleware(
 #     no_of_frames: str
 #     user_id: str
 
-@app.post("/upload/{user_id}/{no_of_frames}/{fps}")
+@app.post("/upload/{user_id}/{no_of_frames}/{fps}/{project_name}")
 async def upload_file(
     file: UploadFile = File(...),
     user_id: str = None,
     no_of_frames: str = 0,
-    fps: str = 24
+    fps: str = 24,
+    project_name: str = "default"
 ):
     try:
         file_content = await file.read()
 
-        c = Commander("0.0.0.0", PORT)
+        c = Commander("10.8.23.226", PORT)
         id = c.ID
+        is_rendered[id] = False
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor()
-        cursor.execute(f"INSERT INTO renders (user_id,commander_id, no_of_frames,project_name,status) VALUES ('{user_id}', '{id}', {no_of_frames}, 'test', 'rendering')")
+        cursor.execute(f"INSERT INTO renders (user_id,commander_id, no_of_frames,project_name,status) VALUES ('{user_id}', '{id}', {no_of_frames}, '{project_name}', 'rendering')")
         connection.commit()
 
-        result = c.message_server(file_content,no_of_frames,fps)
+        # result = c.message_server(file_content,no_of_frames,fps)
+        thread = threading.Thread(target=c.message_server, args=(file_content, no_of_frames, fps))
+        # thread.daemon = True
+        thread.start()
+        return {"status":"success", "id": id}
 
-        if result:
-            cursor.execute(f"UPDATE renders SET status='rendered' WHERE commander_id='{id}'")
-            connection.commit()
-            return {"status":"success", "id": id}
-        else:
-            return {"status": "failure"}
     except Exception as e:
         print(e)
         return {"status": "failure", "error": "Internal Server Error"}
@@ -171,7 +180,7 @@ async def download_file(id: str):
 
 @app.get("/download/video/{id}")
 async def download_video(id: str):
-    video_file_path = Path("commander_output") / id / "video.mp4"
+    video_file_path = Path("commander_output") / id / "results.mp4"
     def generate():
         with open(video_file_path, "rb") as file:
             yield from file
@@ -193,8 +202,20 @@ async def get_renders(user_id: str):
         print(e)
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
+@app.websocket("/ws/{commander_id}")
+async def websocket_endpoint(websocket: WebSocket, commander_id: str):
+    await websocket.accept()
+    try:
+        while True:
+            if is_rendered.get(commander_id, False):
+                await websocket.send_text("rendered")
+                break
+            await websocket.send_text(str(rendered.get(commander_id, 0))+"/"+str(total_frames.get(commander_id, 0)))
+    except WebSocketDisconnect:
+        pass
+    finally:
+        await websocket.close()
 # Run the server
 if __name__ == "__main__":
-
-
     uvicorn.run(app, host="0.0.0.0", port=3000)

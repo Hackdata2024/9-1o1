@@ -5,13 +5,14 @@ import Renders from "./Renders";
 const backendUrl = "http://localhost:3000";
 
 function Home() {
-  const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
-  const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const [commander_id, setCommander_id] = useState("");
   const [numberOfFrames, setNumberOfFrames] = useState("");
   const [file, setFile] = useState(null);
   const [fps, setFps] = useState(24);
+  const [projectName, setProjectName] = useState("");
+  const [render_data, setRender_data] = useState(null);
   const user = useUser().user;
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -20,35 +21,38 @@ function Home() {
   };
 
   const handleRender = () => {
-    setUploading(true);
+    if (file && numberOfFrames != "" && projectName !== "" && fps > 0) {
+      setRender_data({
+        commander_id: commander_id,
+        projectName: projectName,
+        numberOfFrames: numberOfFrames,
+      });
 
-    if (file && numberOfFrames) {
       const formData = new FormData();
       formData.append("file", file);
       // formData.append("no_of_frames", numberOfFrames);
       // formData.append("user_id", user.id);
 
       axios
-        .post(`${backendUrl}/upload/${user.id}/${numberOfFrames}/${fps}`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
+        .post(
+          `${backendUrl}/upload/${user.id}/${numberOfFrames}/${fps}/${projectName}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        )
         .then((res) => {
           console.log(res);
           setResult(res.data);
+          setCommander_id(res.data.id);
           setUploaded(true);
-          setUploading(false);
         })
         .catch((err) => {
           console.log(err);
-          setUploading(false);
           setUploaded(false);
-          setError("Error: Cannot upload or rendering failed");
         });
-    } else {
-      setError("Please select a file to upload");
-      setUploading(false);
     }
   };
 
@@ -88,50 +92,49 @@ function Home() {
 
   return (
     <>
-      <Renders />
-      {uploaded ? (
-        <>
-          <h1>Rendered!</h1>
-          <p>Downloading the Zip file</p>
-        </>
-      ) : uploading ? (
-        <h1>Rendering...</h1>
-      ) : (
-        <>
-          {/* <h1>Upload your .blend file :</h1> */}
-          <label htmlFor="fileInput">Select File:</label>
-          <input
-            type="file"
-            accept=".blend"
-            id="fileInput"
-            onChange={(e) => handleFileChange(e)}
-          />
-          <br />
-          <label htmlFor="framesInput">Number of frames :</label>
-          <input
-            id="framesInput"
-            type="text"
-            placeholder="Enter the number of frames to render"
-            value={numberOfFrames}
-            onChange={(e) => setNumberOfFrames(e.target.value)}
-          />
-          <br />
-          <label htmlFor="fpsInput">FPS :</label> &nbsp;
-          <input id="fpsInput" type="number" placeholder="Enter the fps" 
-            value={fps}
-            onChange={(e) => setFps(e.target.value)}
-          />
-          <br />
-          <button onClick={handleRender} disabled={!numberOfFrames}>
-            Render
-          </button>
-        </>
-      )}
-      {error !== "" && (
-        <div>
-          <h1>{error}</h1>
-        </div>
-      )}
+      <label htmlFor="projectName">Project Name :</label>
+      <input
+        id="projectName"
+        type="text"
+        placeholder="Enter the project name"
+        value={projectName}
+        onChange={(e) => setProjectName(e.target.value)}
+      />
+      <br />
+      {/* <h1>Upload your .blend file :</h1> */}
+      <label htmlFor="fileInput">Select File:</label>
+      <input
+        type="file"
+        accept=".blend"
+        id="fileInput"
+        onChange={(e) => handleFileChange(e)}
+      />
+      <br />
+      <label htmlFor="framesInput">Number of frames :</label>
+      <input
+        id="framesInput"
+        type="text"
+        placeholder="Enter the number of frames to render"
+        value={numberOfFrames}
+        onChange={(e) => setNumberOfFrames(e.target.value)}
+      />
+      <br />
+      <label htmlFor="fpsInput">FPS :</label> &nbsp;
+      <input
+        id="fpsInput"
+        type="number"
+        placeholder="Enter the fps"
+        value={fps}
+        onChange={(e) => setFps(e.target.value)}
+      />
+      <br />
+      <button onClick={handleRender} disabled={!numberOfFrames}>
+        Render
+      </button>
+      <br />
+      <Renders 
+        commander_id={commander_id}
+      />
     </>
   );
 }

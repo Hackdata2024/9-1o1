@@ -4,11 +4,10 @@ import { useUser } from "@clerk/clerk-react";
 import axios from "axios";
 const backendUrl = "http://localhost:3000";
 
-function Renders() {
+function Renders({  commander_id }) {
   const [userId, setUserId] = useState("");
   const user = useUser().user;
   const [renders, setRenders] = useState([]);
-
   useEffect(() => {
     setUserId(user.id);
   }, []);
@@ -64,8 +63,65 @@ function Renders() {
       });
   }, [userId]);
 
+  const RenderingComponentStatus = () => {
+    if (!commander_id) {
+      return (
+        <div>
+          <p>No Active Renders</p>
+        </div>
+      );
+    } 
+    // setRendered(false);
+    const [status, setStatus] = useState("");
+    const [ws, setWs] = useState(null);
+
+    useEffect(() => {
+      console.log(commander_id);
+      const socket = new WebSocket(`ws://localhost:3000/ws/${commander_id}`);
+      setWs(socket);
+      // return () => {
+      //   socket.close();
+      // };
+    }, []);
+
+    useEffect(() => {
+      // setVideoProcessing(true);
+      if (!ws) {
+        return;
+      }
+      ws.onmessage = (event) => {
+        const message = event.data;
+        if(message === "rendered"){
+          ws.close();
+          window.location.reload();
+        }
+        setStatus(message);
+      };
+    }, [ws,status]);
+
+    useEffect(() => {
+      if (
+        status.split("/")[0] === status.split("/")[1] &&
+        status.split("/")[0] !== "0"
+      ) {
+        // setRendered(true);
+        // render_data = null;
+      }
+    }, [status]);
+
+    
+      return (
+        <div>
+        <h1>Active Renders</h1>
+          <p>Rendering...</p>
+          <p>{status}</p>
+        </div>
+      );
+  };
+
   return (
     <div>
+            <RenderingComponentStatus />
       <h1>All Renders</h1>
       {userId && userId !== "" && renders != [] ? (
         <div>
