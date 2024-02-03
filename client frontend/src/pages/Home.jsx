@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser,UserButton } from "@clerk/clerk-react";
 import "../styles/Home.css";
 import Renders from "./Renders";
 
@@ -49,58 +49,55 @@ function Home() {
     }
   };
 
-  useEffect(() => {
-    if (uploaded && result && result.status === "success") {
-      // handleDownload();
-    }
-  }, [uploaded, result]);
-
   return (
-    <>
-      <label htmlFor="projectName">Project Name :</label>
-      <input
-        id="projectName"
-        type="text"
-        placeholder="Enter the project name"
-        value={projectName}
-        onChange={(e) => setProjectName(e.target.value)}
-      />
-      <br />
-      {/* <h1>Upload your .blend file :</h1> */}
-      <label htmlFor="fileInput">Select File:</label>
-      <input
-        type="file"
-        accept=".blend"
-        id="fileInput"
-        onChange={(e) => handleFileChange(e)}
-      />
-      <br />
-      <label htmlFor="framesInput">Number of frames :</label>
-      <input
-        id="framesInput"
-        type="text"
-        placeholder="Enter the number of frames to render"
-        value={numberOfFrames}
-        onChange={(e) => setNumberOfFrames(e.target.value)}
-      />
-      <br />
-      <label htmlFor="fpsInput">FPS :</label> &nbsp;
-      <input
-        id="fpsInput"
-        type="number"
-        placeholder="Enter the fps"
-        value={fps}
-        onChange={(e) => setFps(e.target.value)}
-      />
-      <br />
-      <button onClick={handleRender} disabled={!numberOfFrames}>
-        Render
-      </button>
-      <br />
-      <Renders 
-        commander_id={commander_id}
-      />
-    </>
+    <div className="home-container">
+      <div className="renders-container">
+        <Renders commander_id={commander_id} />
+      </div>
+      <div className="right-container">
+      <UserButton />
+      <div className="form-container">
+        <label htmlFor="projectName">Project Name :</label>
+        <input
+          id="projectName"
+          type="text"
+          placeholder="Enter the project name"
+          value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          />
+        <br />
+        <label htmlFor="fileInput">Select File:</label>
+        <input
+          type="file"
+          accept=".blend"
+          id="fileInput"
+          onChange={(e) => handleFileChange(e)}
+          />
+        <br />
+        <label htmlFor="framesInput">Number of frames :</label>
+        <input
+          id="framesInput"
+          type="text"
+          placeholder="Enter the number of frames to render"
+          value={numberOfFrames}
+          onChange={(e) => setNumberOfFrames(e.target.value)}
+          />
+        <br />
+        <label htmlFor="fpsInput">FPS :</label> &nbsp;
+        <input
+          id="fpsInput"
+          type="number"
+          placeholder="Enter the fps"
+          value={fps}
+          onChange={(e) => setFps(e.target.value)}
+          />
+        <br />
+        <button onClick={handleRender} disabled={!numberOfFrames}>
+          Render
+        </button>
+          </div>
+      </div>
+    </div>
   );
 }
 
