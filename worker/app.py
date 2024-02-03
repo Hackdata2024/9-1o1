@@ -5,6 +5,7 @@ import base64
 import subprocess
 import threading
 import time
+import shutil
 
 blender_path = "C:/Program Files/Blender Foundation/Blender 4.0/blender.exe"
 output_format = "PNG"
@@ -22,7 +23,7 @@ class Worker(Client):
         self.send_message(self.ID)
         print(f"[INFO] Client {self.ID} connected to server")
         self.start_task_loop()
-    
+
     def start_message_loop(self):
         while True:
             user_input = input("Enter message to send (or type 'exit' to quit): ")
@@ -36,6 +37,7 @@ class Worker(Client):
             if message is None:
                 break
             print("[INFO] Blender file received")
+            # print(f"[INFO] Message received: {message}")
             task = message["message"]
             task_id = task["task_id"]
             file_name = task["file_name"]
@@ -56,6 +58,8 @@ class Worker(Client):
             f.close()
             print(f"[INFO] File {file_name} written to {folder_name}")          
 
+            
+            # self.send_ack()
             
             # execute blender
             # output_path = os.path.join(folder_name, f'frame_{frame_num:04d}')
@@ -79,6 +83,8 @@ class Worker(Client):
             ]
             subprocess.Popen(command, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             image_thread.join()
+            # shutil.rmtree(f"{folder_name}/images")
+            # stdout, stderr = process.communicate()
             
     def send_images(self, folder_name, start_frame, end_frame):
         i=0
@@ -106,6 +112,10 @@ class Worker(Client):
             })
             print(f"[INFO] Sent frame {int(images[0].split('.')[0])}")
             i+=1
+        # os.remove(f"{folder_name}/images/{images[0]}")
+        # os.rmdir(f"{folder_name}/images")
+            
+        
 
 if __name__ == "__main__":
-    w = Worker("10.8.24.31", PORT)
+    w = Worker("127.0.0.1", PORT)
