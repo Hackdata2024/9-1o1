@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import axios from "axios";
 const backendUrl = "http://localhost:3000";
 
-function Renders({  commander_id }) {
+function Renders({ commander_id }) {
   const [userId, setUserId] = useState("");
   const user = useUser().user;
   const [renders, setRenders] = useState([]);
@@ -71,7 +71,7 @@ function Renders({  commander_id }) {
           <p>No Active Renders</p>
         </div>
       );
-    } 
+    }
     // setRendered(false);
     const [status, setStatus] = useState("");
     const [ws, setWs] = useState(null);
@@ -92,13 +92,13 @@ function Renders({  commander_id }) {
       }
       ws.onmessage = (event) => {
         const message = event.data;
-        if(message === "rendered"){
+        if (message === "rendered") {
           ws.close();
           window.location.reload();
         }
         setStatus(message);
       };
-    }, [ws,status]);
+    }, [ws, status]);
 
     useEffect(() => {
       if (
@@ -110,19 +110,18 @@ function Renders({  commander_id }) {
       }
     }, [status]);
 
-    
-      return (
-        <div>
+    return (
+      <div>
         <h1>Active Renders</h1>
-          <p>Rendering...</p>
-          <p>{status}</p>
-        </div>
-      );
+        <p>Rendering...</p>
+        <p>{status}</p>
+      </div>
+    );
   };
 
   return (
     <div>
-            <RenderingComponentStatus />
+      <RenderingComponentStatus />
       <h1>All Renders</h1>
       {userId && userId !== "" && renders != [] ? (
         <div>

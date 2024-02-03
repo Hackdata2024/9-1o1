@@ -9,7 +9,6 @@ import {
   RedirectToSignIn,
 } from "@clerk/clerk-react";
 import variables from "./config/index";
-import "./App.css";
 
 const clerkPubKey = variables.VITE_CLERK_PUBLISHABLE_KEY;
 
