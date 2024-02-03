@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useUser, UserButton } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 import "../styles/Home.css";
 import Renders from "./Renders";
 
@@ -14,7 +14,6 @@ function Home() {
   const [file, setFile] = useState(null);
   const [fps, setFps] = useState(24);
   const [projectName, setProjectName] = useState("");
-  const [showInputForm, setShowInputForm] = useState(false);
   const user = useUser().user;
 
   const handleFileChange = (e) => {
@@ -55,16 +54,6 @@ function Home() {
       // handleDownload();
     }
   }, [uploaded, result]);
-
-  const InputForm = () => {
-    const handleClose = () => {
-      setShowInputForm(false);
-    };
-
-    const handleSubmit = () => {
-      handleRender();
-      setShowInputForm(false);
-    };
 
   return (
     <>
