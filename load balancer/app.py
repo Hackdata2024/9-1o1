@@ -1,7 +1,7 @@
 # server.py
 import socket
 import threading
-from server.constants import ACKNOWLEDGEMENT_SIZE, HEADER_SIZE, PORT, DATA_SIZE_PER_PACKET
+from constants import ACKNOWLEDGEMENT_SIZE, HEADER_SIZE, PORT, DATA_SIZE_PER_PACKET
 import time
 from queue import Queue
 from threading import Lock

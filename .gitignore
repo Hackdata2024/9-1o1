@@ -18,3 +18,7 @@ client/*.ntvs*
 client/*.njsproj
 client/*.sln
 client/*.sw?
+
+
+client backend/.env
+client backend/.env.local
