@@ -9,31 +9,21 @@ import uvicorn
 import threading
 from fastapi.responses import StreamingResponse
 from fastapi import HTTPException
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-from models import Render
 
-load_dotenv()
+import mysql.connector
+
+
+db_config = {
+    'host': 'localhost',
+    'user': 'pavan',
+    'password': 'Vishalsai@123',
+    'database': 'hackdata'
+}
+
+
 
 app = FastAPI()
 
-# turso init
-TURSO_DB_URL = os.environ.get("TURSO_DB_URL")
-TURSO_DB_AUTH_TOKEN = os.environ.get("TURSO_DB_AUTH_TOKEN")
-dbUrl = f"sqlite+{TURSO_DB_URL}/?authToken={TURSO_DB_AUTH_TOKEN}&secure=true"
-engine = create_engine(dbUrl, connect_args={'check_same_thread': False}, echo=True)
-
-# @app.route("/", methods=(["GET"]))
-# def home():
-#     session = Session(engine)
-
-#     # get & print items
-#     stmt = select(Item)
-
-#     for item in session.scalars(stmt):
-#         print(item)
 
 class Commander(Client):
     def __init__(self, IP, port):
@@ -47,11 +37,11 @@ class Commander(Client):
         # self.start_message_loop()
                 
 
-    def message_server(self, file):
+    def message_server(self, file, no_of_frames):
         print(f"[INFO] Sending file to server")
         start = time.time()
         start_frame = 1
-        end_frame = 10
+        end_frame = int(no_of_frames)
         message = {
             # "file": file,
             "file_name": "balls.blend",
@@ -117,43 +107,41 @@ app.add_middleware(
 
 
 
-class uploadData:
-    file: UploadFile = File(...)
-    no_of_frames: int
-    user_id: str
+# class uploadData(BaseModel):
+#     # file: UploadFile = File(...)
+#     no_of_frames: str
+#     user_id: str
 
-# Define the endpoint for file upload
-@app.post("/upload")
-async def upload_file(data : uploadData):
+@app.post("/upload/{user_id}/{no_of_frames}")
+async def upload_file(
+    file: UploadFile = File(...),
+    user_id: str = None,
+    no_of_frames: str = 0,
+):
     try:
-        # Access the uploaded file using file.filename and file.file.read()
-        # For now, we are just logging the file details
-        print('Received file:', data.file.filename)
-        file_content = await data.file.read()
-        print('File size:', len(file_content))
-        # Send the file to the server
+        print(user_id)
+        print(no_of_frames)
+
+        file_content = await file.read()
+
         c = Commander("0.0.0.0", PORT)
         id = c.ID
-        
-        session = Session(engine)
-        render = Render(userid=data.user_id, commanderid=id, no_of_frames=data.no_of_frames, projectName=data.file.filename, status="rendering")
-        session.add(render)
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
+        cursor.execute(f"INSERT INTO renders (user_id,commander_id, no_of_frames,project_name,status) VALUES ('{user_id}', '{id}', {no_of_frames}, 'test', 'rendering')")
+        connection.commit()
 
-        result = c.message_server(file_content)
-
-
+        result = c.message_server(file_content,no_of_frames)
 
         if result:
-            session = Session(engine)
-            render = Render(userid=data.user_id, commanderid=id, no_of_frames=data.no_of_frames, projectName=data.file.filename, status="rendered")
-            session.add(render)
-
-            return {"status": "success", "id": id}
+            cursor.execute(f"UPDATE renders SET status='rendered' WHERE commander_id='{id}'")
+            connection.commit()
+            return {"status":"success", "id": id}
         else:
             return {"status": "failure"}
     except Exception as e:
         print(e)
-        return {"status":"failure","error": "Internal Server Error"}
+        return {"status": "failure", "error": "Internal Server Error"}
 
 
 @app.get("/download/{id}")
@@ -177,7 +165,20 @@ async def download_file(id: str):
         print(e)
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+@app.get("/renders/{user_id}")
+async def get_renders(user_id: str):
+    try:
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
+        cursor.execute(f"SELECT * FROM renders WHERE user_id='{user_id}'")
+        result = cursor.fetchall()
+        return result
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 # Run the server
 if __name__ == "__main__":
+
+
     uvicorn.run(app, host="0.0.0.0", port=3000)

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
+import Renders from "./Renders";
 const backendUrl = "http://localhost:3000";
 
 function Home() {
@@ -20,16 +21,14 @@ function Home() {
   const handleRender = () => {
     setUploading(true);
 
-    // const selectedFile = document.querySelector("input[type=file]").files[0];
-
     if (file && numberOfFrames) {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("numberOfFrames", numberOfFrames);
-      formData.append("userId", user.id);
+      // formData.append("no_of_frames", numberOfFrames);
+      // formData.append("user_id", user.id);
 
       axios
-        .post(`${backendUrl}/upload`, formData, {
+        .post(`${backendUrl}/upload/${user.id}/${numberOfFrames}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -52,42 +51,43 @@ function Home() {
     }
   };
 
-  const handleDownload = () => {
-    axios
-      .get(`${backendUrl}/download/${result.id}`, {
-        responseType: "blob",
-      })
-      .then((res) => {
-        console.log(res);
-        const url = window.URL.createObjectURL(
-          new Blob([res.data], {
-            type: "application/zip",
-          })
-        );
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", "results.zip");
-        document.body.appendChild(link);
-        link.click();
-        setUploaded(false);
-        setUploading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setUploading(false);
-        setUploaded(false);
-        setError("Error: Cannot download the zip file");
-      });
-  };
+  // const handleDownload = () => {
+  //   axios
+  //     .get(`${backendUrl}/download/${result.id}`, {
+  //       responseType: "blob",
+  //     })
+  //     .then((res) => {
+  //       console.log(res);
+  //       const url = window.URL.createObjectURL(
+  //         new Blob([res.data], {
+  //           type: "application/zip",
+  //         })
+  //       );
+  //       const link = document.createElement("a");
+  //       link.href = url;
+  //       link.setAttribute("download", "results.zip");
+  //       document.body.appendChild(link);
+  //       link.click();
+  //       setUploaded(false);
+  //       setUploading(false);
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //       setUploading(false);
+  //       setUploaded(false);
+  //       setError("Error: Cannot download the zip file");
+  //     });
+  // };
 
   useEffect(() => {
     if (uploaded && result && result.status === "success") {
-      handleDownload();
+      // handleDownload();
     }
   }, [uploaded, result]);
 
   return (
     <>
+      <Renders />
       {uploaded ? (
         <>
           <h1>Rendered!</h1>
@@ -97,7 +97,7 @@ function Home() {
         <h1>Rendering...</h1>
       ) : (
         <>
-          <h1>Upload your .blend file :</h1>
+          {/* <h1>Upload your .blend file :</h1> */}
           <label htmlFor="fileInput">Select File:</label>
           <input
             type="file"

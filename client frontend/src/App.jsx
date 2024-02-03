@@ -1,5 +1,6 @@
 import { Route } from "react-router-dom";
 import Home from "./pages/Home";
+import Renders from "./pages/Renders";
 import { Routes, useNavigate } from "react-router-dom";
 import {
   ClerkProvider,
@@ -19,6 +20,7 @@ function App() {
       <SignedIn>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/renders" element={<Renders />} />
         </Routes>
       </SignedIn>
       <SignedOut>
