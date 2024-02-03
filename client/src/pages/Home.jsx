@@ -1,25 +1,33 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-
+import { useUser } from "@clerk/clerk-react";
 const backendUrl = "http://localhost:3000";
 
 function Home() {
-  // const [file, setFile] = useState(null);
-  // const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
-  const handleUpload = () => {
+  const [numberOfFrames, setNumberOfFrames] = useState("");
+  const [file, setFile] = useState(null);
+  const user = useUser().user;
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    // Handle the selected file if needed
+  };
+
+  const handleRender = () => {
     setUploading(true);
-    const selectedFile = document.querySelector("input[type=file]").files[0];
-    
-    if (selectedFile) {
-      // setFile(selectedFile);
-      
+
+    // const selectedFile = document.querySelector("input[type=file]").files[0];
+
+    if (file && numberOfFrames) {
       const formData = new FormData();
-      formData.append("file", selectedFile);
-  
+      formData.append("file", file);
+      formData.append("numberOfFrames", numberOfFrames);
+      formData.append("userId", user.id);
+
       axios
         .post(`${backendUrl}/upload`, formData, {
           headers: {
@@ -29,78 +37,94 @@ function Home() {
         .then((res) => {
           console.log(res);
           setResult(res.data);
-          setUploading(false);
           setUploaded(true);
+          setUploading(false);
         })
         .catch((err) => {
           console.log(err);
           setUploading(false);
           setUploaded(false);
-          setError("Error cannot upload or Rendering failed");
+          setError("Error: Cannot upload or rendering failed");
         });
     } else {
-      // Handle case when no file is selected
       setError("Please select a file to upload");
       setUploading(false);
     }
   };
 
+  const handleDownload = () => {
+    axios
+      .get(`${backendUrl}/download/${result.id}`, {
+        responseType: "blob",
+      })
+      .then((res) => {
+        console.log(res);
+        const url = window.URL.createObjectURL(
+          new Blob([res.data], {
+            type: "application/zip",
+          })
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "results.zip");
+        document.body.appendChild(link);
+        link.click();
+        setUploaded(false);
+        setUploading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setUploading(false);
+        setUploaded(false);
+        setError("Error: Cannot download the zip file");
+      });
+  };
+
   useEffect(() => {
-    if (uploaded) {
-      if (result && result.status === "success") {
-        axios.get(`${backendUrl}/download/${result.id}`, {
-          responseType: "blob",
-        })
-        .then((res) => {
-          console.log(res);
-          const url = window.URL.createObjectURL(
-            new Blob([res.data], {
-              type: "application/zip",
-            })
-          );
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "results.zip");
-          document.body.appendChild(link);
-          link.click();
-          setUploading(false);
-          setUploaded(false);
-        })
-        .catch((err) => {
-          console.log(err);
-          setUploading(false);
-          setUploaded(false);
-          setError("Error cannot download the zip file");
-        });
-      }
+    if (uploaded && result && result.status === "success") {
+      handleDownload();
     }
   }, [uploaded, result]);
 
-  
   return (
     <>
       {uploaded ? (
         <>
-        <h1>Rendered! </h1>
-        <p>Downloading the Zip file</p>
+          <h1>Rendered!</h1>
+          <p>Downloading the Zip file</p>
         </>
       ) : uploading ? (
         <h1>Rendering...</h1>
       ) : (
         <>
-          <h1>Upload your .blend file</h1>
-          <input type="file" accept=".blend" />
-          <button onClick={handleUpload}>Render</button>
+          <h1>Upload your .blend file :</h1>
+          <label htmlFor="fileInput">Select File:</label>
+          <input
+            type="file"
+            accept=".blend"
+            id="fileInput"
+            onChange={(e) => handleFileChange(e)}
+          />
+          <br />
+          <label htmlFor="framesInput">Number of frames :</label>
+          <input
+            id="framesInput"
+            type="text"
+            placeholder="Enter the number of frames"
+            value={numberOfFrames}
+            onChange={(e) => setNumberOfFrames(e.target.value)}
+          />
+          <br />
+          <button onClick={handleRender} disabled={!numberOfFrames}>
+            Render
+          </button>
         </>
       )}
-      {
-        error != "" && (
-          <div>
-            <h1>{error}</h1>
-          </div>
-        )
-
-      }
+      {error !== "" && (
+        <div>
+          <h1>{error}</h1>
+        </div>
+      )}
     </>
   );
 }

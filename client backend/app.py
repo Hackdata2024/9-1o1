@@ -9,7 +9,31 @@ import uvicorn
 import threading
 from fastapi.responses import StreamingResponse
 from fastapi import HTTPException
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy import select
+from models import Render
+
+load_dotenv()
+
 app = FastAPI()
+
+# turso init
+TURSO_DB_URL = os.environ.get("TURSO_DB_URL")
+TURSO_DB_AUTH_TOKEN = os.environ.get("TURSO_DB_AUTH_TOKEN")
+dbUrl = f"sqlite+{TURSO_DB_URL}/?authToken={TURSO_DB_AUTH_TOKEN}&secure=true"
+engine = create_engine(dbUrl, connect_args={'check_same_thread': False}, echo=True)
+
+# @app.route("/", methods=(["GET"]))
+# def home():
+#     session = Session(engine)
+
+#     # get & print items
+#     stmt = select(Item)
+
+#     for item in session.scalars(stmt):
+#         print(item)
 
 class Commander(Client):
     def __init__(self, IP, port):
@@ -78,21 +102,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
+class uploadData:
+    file: UploadFile = File(...)
+    no_of_frames: int
+    user_id: str
+
 # Define the endpoint for file upload
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(data : uploadData):
     try:
         # Access the uploaded file using file.filename and file.file.read()
         # For now, we are just logging the file details
-        print('Received file:', file.filename)
-        file_content = await file.read()
+        print('Received file:', data.file.filename)
+        file_content = await data.file.read()
         print('File size:', len(file_content))
         # Send the file to the server
         c = Commander("0.0.0.0", PORT)
         id = c.ID
+        
+        session = Session(engine)
+        render = Render(userid=data.user_id, commanderid=id, no_of_frames=data.no_of_frames, projectName=data.file.filename, status="rendering")
+        session.add(render)
+
         result = c.message_server(file_content)
-        # return {"status": isRendered}
+
+        
+
         if result:
+            session = Session(engine)
+            render = Render(userid=data.user_id, commanderid=id, no_of_frames=data.no_of_frames, projectName=data.file.filename, status="rendered")
+            session.add(render)
+
             return {"status": "success", "id": id}
         else:
             return {"status": "failure"}
