@@ -13,27 +13,20 @@ function Renders() {
     setUserId(user.id);
   }, []);
 
-  const handleDownload = (commander_id) => {
-    axios
-      .get(`${backendUrl}/download/${commander_id}`, {
-        responseType: "blob",
-      })
-      .then((res) => {
-        console.log(res);
-        const url = window.URL.createObjectURL(
-          new Blob([res.data], {
-            type: "application/zip",
-          })
-        );
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", "results.zip");
-        document.body.appendChild(link);
-        link.click();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  const handleDownload = async(commander_id) => {
+    const filename = "results.zip"; // Replace with your actual filename
+    
+    const url = `${backendUrl}/download/${commander_id}`;
+        const response = await fetch(url);
+            const blob = await response.blob();
+
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
   };
 
   useEffect(() => {

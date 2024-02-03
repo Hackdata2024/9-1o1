@@ -9,6 +9,10 @@ import uvicorn
 import threading
 from fastapi.responses import StreamingResponse
 from fastapi import HTTPException
+from starlette.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import StreamingResponse
+from pathlib import Path
 
 import mysql.connector
 
@@ -144,26 +148,20 @@ async def upload_file(
         return {"status": "failure", "error": "Internal Server Error"}
 
 
+app.mount("/commander_output", StaticFiles(directory="commander_output"), name="commander_output")
+
 @app.get("/download/{id}")
 async def download_file(id: str):
-    try:
-        # Access the uploaded file using file.filename and file.file.read()
-        # For now, we are just logging the file details
-        print('Received file:', id)
-        # Send the file to the server
-        output_folder = "commander_output"
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
-        file_path = f"{output_folder}/{id}/results.zip"
+    zip_file_path = Path("commander_output") / id / "results.zip"
+    def generate():
+        with open(zip_file_path, "rb") as file:
+            yield from file
 
-        if os.path.exists(file_path):
-            return StreamingResponse(open(file_path, "rb"), media_type="application/zip", headers={"Content-Disposition": f"attachment; filename={id}_results.zip"})
-        else:
-            raise HTTPException(status_code=404, detail="File not found")
+    response = StreamingResponse(generate(), media_type="application/zip")
+    response.headers["Content-Disposition"] = f'attachment; filename="results_{id}.zip"'
+    return response
 
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 
 @app.get("/renders/{user_id}")
 async def get_renders(user_id: str):

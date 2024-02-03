@@ -22,3 +22,8 @@ client frontend/*.sw?
 
 client backend/.env
 client backend/.env.local
+
+
+load balancer/server_blend_files
+worker/worker_blend_files
+client backend/commander_output
