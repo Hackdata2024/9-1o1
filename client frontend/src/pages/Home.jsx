@@ -133,7 +133,6 @@ function Home() {
       </button>
       <br />
       <Renders 
-        render_data={render_data}
         commander_id={commander_id}
       />
     </>

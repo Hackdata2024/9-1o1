@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
-import PropTypes from "prop-types";
 
 import axios from "axios";
 const backendUrl = "http://localhost:3000";
 
-function Renders({ render_data, commander_id }) {
+function Renders({  commander_id }) {
   const [userId, setUserId] = useState("");
   const user = useUser().user;
   const [renders, setRenders] = useState([]);
-  const [rendered, setRendered] = useState(true);
-  const [videoProcessing, setVideoProcessing] = useState(false);
-  const [props, setProps] = useState(render_data);
   useEffect(() => {
     setUserId(user.id);
   }, []);
@@ -95,6 +91,10 @@ function Renders({ render_data, commander_id }) {
       }
       ws.onmessage = (event) => {
         const message = event.data;
+        if(message === "rendered"){
+          ws.close();
+          window.location.reload();
+        }
         setStatus(message);
       };
     }, [ws,status]);
@@ -105,7 +105,7 @@ function Renders({ render_data, commander_id }) {
         status.split("/")[0] !== "0"
       ) {
         // setRendered(true);
-        render_data = null;
+        // render_data = null;
       }
     }, [status]);
 
@@ -151,9 +151,5 @@ function Renders({ render_data, commander_id }) {
     </div>
   );
 }
-
-Renders.propTypes = {
-  render_data: PropTypes.object,
-};
 
 export default Renders;
