@@ -11,6 +11,7 @@ function Home() {
   const [result, setResult] = useState(null);
   const [numberOfFrames, setNumberOfFrames] = useState("");
   const [file, setFile] = useState(null);
+  const [fps, setFps] = useState(24);
   const user = useUser().user;
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -28,7 +29,7 @@ function Home() {
       // formData.append("user_id", user.id);
 
       axios
-        .post(`${backendUrl}/upload/${user.id}/${numberOfFrames}`, formData, {
+        .post(`${backendUrl}/upload/${user.id}/${numberOfFrames}/${fps}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -110,9 +111,15 @@ function Home() {
           <input
             id="framesInput"
             type="text"
-            placeholder="Enter the number of frames"
+            placeholder="Enter the number of frames to render"
             value={numberOfFrames}
             onChange={(e) => setNumberOfFrames(e.target.value)}
+          />
+          <br />
+          <label htmlFor="fpsInput">FPS :</label> &nbsp;
+          <input id="fpsInput" type="number" placeholder="Enter the fps" 
+            value={fps}
+            onChange={(e) => setFps(e.target.value)}
           />
           <br />
           <button onClick={handleRender} disabled={!numberOfFrames}>

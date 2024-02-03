@@ -34,6 +34,7 @@ class Server:
         self.result_sent_lengths = {}
 
         self.lock = Lock()
+        self.c_lock = Lock()
         # self.result_lock = Lock()
 
     def start(self):
@@ -42,7 +43,6 @@ class Server:
         threading.Thread(target=self.handle_result_queue).start()
 
         threading.Thread(target=self.order_messages).start()
-        # threading.Thread(target=self.worker_health_check).start()
         while True:
             client_socket, client_address = self.server_socket.accept()
             # self.send_ack(client_socket, "CONNECTED")  # Send acknowledgment for connection establishment
@@ -80,6 +80,7 @@ class Server:
             if not os.path.exists(output_folder):
                 os.mkdir(output_folder)
             frame_num = result["frame_num"]
+            fps = result["fps"]
             f = open(f"{output_folder}/{frame_num}.png", "wb")
             f.write(base64.b64decode(result["frame"]))
             f.close()
@@ -94,34 +95,27 @@ class Server:
                 os.chdir(f"server_blend_files/{commander_id}")
 
                 os.system(f"zip -r results.zip ./results")
+
+                os.system(f"ffmpeg -r {fps} -i results/%d.png -c:v libx264 -vf fps={fps} -y results.mp4")
+
                 # send the zip file
                 f = open("results.zip", "rb")
                 file = f.read()
                 f.close()
+
+                f = open("results.mp4", "rb")
+                file_mp4 = f.read()
+                f.close()
+
                 message = {
                     "file_name": "results.zip",
                     "file": base64.b64encode(file).decode('utf-8'),
+                    "video_name": "results.mp4",
+                    "video": base64.b64encode(file_mp4).decode('utf-8')
                     }
                 self.send_message(message, commander_socket)
                 print(f"[INFO] Results sent to commander {commander_id}")
-                self.commander_status[commander_id] = "idle"
-
-    def worker_health_check(self):
-        while True:
-            worker_ids = list(self.workers.keys())
-            for worker_id in worker_ids:
-                file_no = self.workers[worker_id][0].fileno()
-                if file_no == -1:
-                    self.workers.pop(worker_id)
-                    self.worker_status.pop(worker_id)
-                    if worker_id in self.assigned_tasks:
-                        self.message_queue.put(self.assigned_tasks[worker_id])
-                        self.assigned_tasks.pop(worker_id)
-                    print(f"[INFO] Worker {worker_id} disconnected from server")
-                else:
-                    print(f"[INFO] Worker {worker_id} health check passed with file no {file_no}")
-            time.sleep(1)
-                
+                self.commander_status[commander_id] = "idle"                
 
     def handle_worker_send(self, worker_socket, worker_id):
         while True:
@@ -158,7 +152,8 @@ class Server:
             i += 1
             
             commander_socket, commander_address = self.commanders[commander_id]
-            self.send_message({"message": "frame_rendered"}, commander_socket)
+            with self.c_lock:
+                self.send_message({"message": "frame_rendered"}, commander_socket)
 
         
 
@@ -215,6 +210,7 @@ class Server:
                 message_to_send = message.copy()
                 message_to_send["start_frame"] = start_frame
                 message_to_send["end_frame"] = end_frame
+                message_to_send["fps"] = message["fps"]
                 self.add_message_to_queue(message_to_send, commander_id, i)
             self.commander_status[commander_id] = "busy"      
                 

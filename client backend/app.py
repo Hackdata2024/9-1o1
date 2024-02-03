@@ -41,7 +41,7 @@ class Commander(Client):
         # self.start_message_loop()
                 
 
-    def message_server(self, file, no_of_frames):
+    def message_server(self, file, no_of_frames,fps):
         print(f"[INFO] Sending file to server")
         start = time.time()
         start_frame = 1
@@ -52,6 +52,7 @@ class Commander(Client):
             "file": base64.b64encode(file).decode('utf-8'),
             "start_frame": start_frame,
             "end_frame": end_frame,
+            "fps": int(fps)
             }
         # send file
         self.send_message(message)
@@ -87,6 +88,9 @@ class Commander(Client):
                 return False
             zip_file = message["file"]
             file_name = message["file_name"]
+
+            video = message["video"]
+            video_name = message["video_name"]
             
             if not os.path.exists(f"{output_folder}/{self.ID}"):
                 os.mkdir(f"{output_folder}/{self.ID}")
@@ -95,7 +99,13 @@ class Commander(Client):
             f = open(f"{output_folder}/{self.ID}/{file_name}", "wb")
             f.write(base64.b64decode(zip_file))
             f.close()
-            return f"{output_folder}/{self.ID}/{file_name}"             
+            
+            # saving video
+            f = open(f"{output_folder}/{self.ID}/{video_name}", "wb")
+            f.write(base64.b64decode(video))
+            f.close()
+
+            return f"{output_folder}/{self.ID}"             
         else:
             return False
 
@@ -116,16 +126,14 @@ app.add_middleware(
 #     no_of_frames: str
 #     user_id: str
 
-@app.post("/upload/{user_id}/{no_of_frames}")
+@app.post("/upload/{user_id}/{no_of_frames}/{fps}")
 async def upload_file(
     file: UploadFile = File(...),
     user_id: str = None,
     no_of_frames: str = 0,
+    fps: str = 24
 ):
     try:
-        print(user_id)
-        print(no_of_frames)
-
         file_content = await file.read()
 
         c = Commander("0.0.0.0", PORT)
@@ -135,7 +143,7 @@ async def upload_file(
         cursor.execute(f"INSERT INTO renders (user_id,commander_id, no_of_frames,project_name,status) VALUES ('{user_id}', '{id}', {no_of_frames}, 'test', 'rendering')")
         connection.commit()
 
-        result = c.message_server(file_content,no_of_frames)
+        result = c.message_server(file_content,no_of_frames,fps)
 
         if result:
             cursor.execute(f"UPDATE renders SET status='rendered' WHERE commander_id='{id}'")
@@ -161,6 +169,16 @@ async def download_file(id: str):
     response.headers["Content-Disposition"] = f'attachment; filename="results_{id}.zip"'
     return response
 
+@app.get("/download/video/{id}")
+async def download_video(id: str):
+    video_file_path = Path("commander_output") / id / "video.mp4"
+    def generate():
+        with open(video_file_path, "rb") as file:
+            yield from file
+
+    response = StreamingResponse(generate(), media_type="video/mp4")
+    response.headers["Content-Disposition"] = f'attachment; filename="video_{id}.mp4"'
+    return response
 
 
 @app.get("/renders/{user_id}")

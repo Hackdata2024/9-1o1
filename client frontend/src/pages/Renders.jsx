@@ -13,20 +13,36 @@ function Renders() {
     setUserId(user.id);
   }, []);
 
-  const handleDownload = async(commander_id) => {
+  const handleDownload = async (commander_id) => {
     const filename = "results.zip"; // Replace with your actual filename
-    
+
     const url = `${backendUrl}/download/${commander_id}`;
-        const response = await fetch(url);
-            const blob = await response.blob();
+    const response = await fetch(url);
+    const blob = await response.blob();
 
-            const link = document.createElement("a");
-            link.href = window.URL.createObjectURL(blob);
-            link.download = filename;
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename;
 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadVideo = async (commander_id) => {
+    const filename = "video.mp4"; // Replace with your actual filename
+
+    const url = `${backendUrl}/download/video/${commander_id}`;
+    const response = await fetch(url);
+    const blob = await response.blob();
+
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   useEffect(() => {
@@ -61,7 +77,10 @@ function Renders() {
                 <>
                   <p>Rendered</p>
                   <button onClick={() => handleDownload(render[1])}>
-                    Download
+                    Download Frames as Zip
+                  </button>
+                  <button onClick={() => handleDownloadVideo(render[1])}>
+                    Download Video
                   </button>
                 </>
               ) : (
