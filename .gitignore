@@ -1,23 +1,23 @@
-client/logs
-client/*.log
-client/npm-debug.log*
-client/yarn-debug.log*
-client/yarn-error.log*
-client/pnpm-debug.log*
-client/lerna-debug.log*
-client/node_modules
-client/dist
-client/dist-ssr
-client/*.local
-client/.vscode/*
-client/!.vscode/extensions.json
-client/.idea
-client/.DS_Store
-client/*.suo
-client/*.ntvs*
-client/*.njsproj
-client/*.sln
-client/*.sw?
+client frontend/logs
+client frontend/*.log
+client frontend/npm-debug.log*
+client frontend/yarn-debug.log*
+client frontend/yarn-error.log*
+client frontend/pnpm-debug.log*
+client frontend/lerna-debug.log*
+client frontend/node_modules
+client frontend/dist
+client frontend/dist-ssr
+client frontend/*.local
+client frontend/.vscode/*
+client frontend/!.vscode/extensions.json
+client frontend/.idea
+client frontend/.DS_Store
+client frontend/*.suo
+client frontend/*.ntvs*
+client frontend/*.njsproj
+client frontend/*.sln
+client frontend/*.sw?
 
 
 client backend/.env
