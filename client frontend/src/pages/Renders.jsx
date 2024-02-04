@@ -92,6 +92,7 @@ function Renders({ commander_id }) {
   };
 
   const RenderingComponentStatus = () => {
+    const [note, setNote] = useState("");
     if (!commander_id) {
       return (
         <div>
@@ -135,6 +136,7 @@ function Renders({ commander_id }) {
         // setRendered(true);
         // render_data = null;
         // render_data = null;
+        setNote("Rendering Completed. Video is being processed ...");
       }
     }, [status]);
 
@@ -147,6 +149,7 @@ function Renders({ commander_id }) {
           numerator={parseInt(status.split("/")[0])}
           denominator={parseInt(status.split("/")[1])}
         />
+        {note}
       </div>
     );
   };

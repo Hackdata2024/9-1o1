@@ -49,9 +49,21 @@ function Home() {
     }
   };
 
-  const UploadForm = () => {
-    return (
-      <div className="form-container">
+  // const UploadForm = () => {
+  //   return (
+      
+  //   );
+  // };
+
+  return (
+    <div className="home-container">
+      <div className="renders-container">
+        <Renders commander_id={commander_id} />
+      </div>
+      <div className="right-container">
+        <UserButton />
+        {/* <UploadForm /> */}
+        <div className="form-container">
         <h2>Upload your .blend file</h2>
         <label htmlFor="projectName">Project Name :</label>
         <input
@@ -92,17 +104,6 @@ function Home() {
           Render
         </button>
       </div>
-    );
-  };
-
-  return (
-    <div className="home-container">
-      <div className="renders-container">
-        <Renders commander_id={commander_id} />
-      </div>
-      <div className="right-container">
-        <UserButton />
-        <UploadForm />
       </div>
     </div>
   );

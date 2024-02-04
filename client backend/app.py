@@ -209,6 +209,10 @@ async def websocket_endpoint(websocket: WebSocket, commander_id: str):
     try:
         while True:
             if is_rendered.get(commander_id, False):
+                connection = mysql.connector.connect(**db_config)
+                cursor = connection.cursor()
+                cursor.execute(f"UPDATE renders SET status='rendered' WHERE commander_id='{commander_id}'")
+                connection.commit()
                 await websocket.send_text("rendered")
                 break
             await websocket.send_text(str(rendered.get(commander_id, 0))+"/"+str(total_frames.get(commander_id, 0)))
