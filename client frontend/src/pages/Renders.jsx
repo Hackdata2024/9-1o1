@@ -3,7 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 import PropTypes from "prop-types";
 
 import axios from "axios";
-const backendUrl = "http://localhost:3000";
+const backendUrl = "http://10.8.24.31:3000";
 
 function Renders({ commander_id }) {
   const [userId, setUserId] = useState("");
@@ -106,7 +106,7 @@ function Renders({ commander_id }) {
 
     useEffect(() => {
       console.log(commander_id);
-      const socket = new WebSocket(`ws://localhost:3000/ws/${commander_id}`);
+      const socket = new WebSocket(`ws://10.8.24.31:3000/ws/${commander_id}`);
       setWs(socket);
       // return () => {
       //   socket.close();
@@ -163,11 +163,11 @@ function Renders({ commander_id }) {
           <p>Status : {render[4]}</p>
         </div>
         <div className="render_buttons">
-          <button onClick={() => handleDownload(render.id)} className="btn1">
+          <button onClick={() => handleDownload(render[1])} className="btn1">
             Download Frames(Zip)
           </button>
           <button
-            onClick={() => handleDownloadVideo(render.id)}
+            onClick={() => handleDownloadVideo(render[1])}
             className="btn2"
           >
             Download Video(mp4)
@@ -189,7 +189,7 @@ function Renders({ commander_id }) {
         <>
           <br />
           <h2>No Previous Renders</h2>
-          <p>Upload a .blend file in the form to start rendering</p>
+          <p>Upload a .blend file to start rendering</p>
         </>
       )}
     </div>

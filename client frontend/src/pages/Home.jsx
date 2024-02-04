@@ -4,7 +4,7 @@ import { useUser, UserButton } from "@clerk/clerk-react";
 import "../styles/Home.css";
 import Renders from "./Renders";
 
-const backendUrl = "http://localhost:3000";
+const backendUrl = "http://10.8.24.31:3000";
 
 function Home() {
   const [uploaded, setUploaded] = useState(false);

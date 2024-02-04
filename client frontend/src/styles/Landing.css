@@ -13,6 +13,15 @@
   justify-content: space-between;
   width: 95%;
 }
+.nav_head{
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.nav_head p{
+  margin-left: 0.5rem;
+}
 
 .nav button {
   padding: 10px 20px;
@@ -81,6 +90,29 @@
   margin: 0;
 }
 
+.what_cont{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 68%;
+  margin-top: 3rem;
+}
+
+.what_cont h2 {
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-size: 2.2rem;
+}
+
+.what_cont p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+
+
 .reason_cont {
   display: flex;
   /* justify-content: space-between; */
@@ -125,6 +157,12 @@
   margin-top: 3rem;
 }
 
+.working_main_cont h2 {
+  /* margin-bottom: 20px; */
+  font-weight: 600;
+  font-size: 2.2rem;
+}
+
 .step_cont {
   display: flex;
   flex-direction: column;
@@ -133,3 +171,48 @@
   width: 40%;
   margin-top: 3rem;
 }
+
+.architecture_main_cont {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 3rem;
+}
+
+.architecture_main_cont h2 {
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-size: 2.2rem;
+}
+
+.architecture_img {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  /* padding: 20px; */
+}
+
+.architecture_img img {
+  width: 90%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 5px solid #6c47ff;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+}
+
+/* .hor {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 99%;
+  opacity: 0.3;
+  /* margin-top: 3rem; */
+} */

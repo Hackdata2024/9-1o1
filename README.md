@@ -33,7 +33,7 @@ training time from multiple days to few hours.
 
 ### Architecture
 
-![Architecture](https://i.imgur.com/wF7DcZx.png)
+![Architecture](https://i.imgur.com/I50BdUt.png)
 
 ### Components
 
@@ -81,6 +81,33 @@ their favourite IDEs
   (like GPU, CPU, etc.)
 
 
+## Running the project
+
+- Clone the repository
+- Install the required packages using `pip install -r requirements.txt`
+
+- Load Balancer
+  - `cd "load balancer"`
+  - `python app.py` or `python3 app.py` to start the load balancer
+
+- Worker
+  - `cd worker`
+  - `python app.py` or `python3 app.py` to start the worker
+
+- website
+  - `cd "client frontend"`
+  - `npm install` to install the required packages
+  - `npm run dev` to start the website
+
+- client backend
+  - `cd "client backend"`
+  - `mkdir commander_output` to create a directory for the task results
+  - `python app.py` or `python3 app.py` to start the client backend
+
+
+### Note: Please update the constants and urls before running the project
+
+### Note: For Workers update the blender_path in the app.py file to the path of the blender executable in your system
 
 ### Team Members ( 1o1 )
 

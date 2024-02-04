@@ -1,0 +1,3 @@
+nanoid
+socket
+uvicorn
