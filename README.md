@@ -104,6 +104,7 @@ their favourite IDEs
   - `mkdir commander_output` to create a directory for the task results
   - `python app.py` or `python3 app.py` to start the client backend
 
+- Install blender, MySQL and ffmpeg to run the project
 
 ### Note: Please update the constants and urls before running the project
 
