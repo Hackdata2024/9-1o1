@@ -65,7 +65,7 @@ function Home() {
         <UserButton />
         {/* <UploadForm /> */}
         <div className="form-container">
-          <h2>Upload your .blend file</h2>
+          <h2 className="title">Upload your .blend file</h2>
           <label htmlFor="projectName">Project Name :</label>
           <input
             id="projectName"
