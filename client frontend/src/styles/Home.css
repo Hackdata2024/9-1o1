@@ -10,6 +10,12 @@ h1 {
   font-size: 2rem;
   margin: 0;
 }
+.heading {
+  display: inline-block;
+  border: #6c47ff 2px solid;
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px;
+}
 
 h2 {
   font-size: 1.5rem;

@@ -142,7 +142,6 @@ function Renders({ commander_id }) {
 
     return (
       <div>
-        {/* <h1>Active Renders</h1> */}
         <p>Rendering in Progress status : {status}</p>
         {/* Progress bar */}
         <ProgressBar
