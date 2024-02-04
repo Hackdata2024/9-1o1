@@ -58,7 +58,7 @@ function Home() {
   return (
     <div className="home-container">
       <div className="renders-container">
-        <h1 className="heading">Distributed Computing</h1>
+        <h1 className="heading">Parallel Pilot</h1>
         <Renders commander_id={commander_id} />
       </div>
       <div className="right-container">
