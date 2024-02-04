@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useUser,UserButton } from "@clerk/clerk-react";
+import { useUser, UserButton } from "@clerk/clerk-react";
 import "../styles/Home.css";
 import Renders from "./Renders";
 
@@ -49,14 +49,10 @@ function Home() {
     }
   };
 
-  return (
-    <div className="home-container">
-      <div className="renders-container">
-        <Renders commander_id={commander_id} />
-      </div>
-      <div className="right-container">
-      <UserButton />
+  const UploadForm = () => {
+    return (
       <div className="form-container">
+        <h2>Upload your .blend file</h2>
         <label htmlFor="projectName">Project Name :</label>
         <input
           id="projectName"
@@ -64,7 +60,7 @@ function Home() {
           placeholder="Enter the project name"
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-          />
+        />
         <br />
         <label htmlFor="fileInput">Select File:</label>
         <input
@@ -72,7 +68,7 @@ function Home() {
           accept=".blend"
           id="fileInput"
           onChange={(e) => handleFileChange(e)}
-          />
+        />
         <br />
         <label htmlFor="framesInput">Number of frames :</label>
         <input
@@ -81,7 +77,7 @@ function Home() {
           placeholder="Enter the number of frames to render"
           value={numberOfFrames}
           onChange={(e) => setNumberOfFrames(e.target.value)}
-          />
+        />
         <br />
         <label htmlFor="fpsInput">FPS :</label> &nbsp;
         <input
@@ -90,12 +86,23 @@ function Home() {
           placeholder="Enter the fps"
           value={fps}
           onChange={(e) => setFps(e.target.value)}
-          />
+        />
         <br />
         <button onClick={handleRender} disabled={!numberOfFrames}>
           Render
         </button>
-          </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="home-container">
+      <div className="renders-container">
+        <Renders commander_id={commander_id} />
+      </div>
+      <div className="right-container">
+        <UserButton />
+        <UploadForm />
       </div>
     </div>
   );

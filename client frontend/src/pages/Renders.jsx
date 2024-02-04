@@ -67,11 +67,26 @@ function Renders({ commander_id }) {
   const ProgressBar = ({ numerator, denominator }) => {
     // Calculate the percentage completion
     const percentage = (numerator / denominator) * 100;
-  
+
     return (
-      <div className="progress-bar" style={{ width: "50%", height: "10px", border: "1px solid #ccc", borderRadius: "5px", overflow: "hidden" }}>
-        <div className="progress-bar-fill" style={{ width: `${percentage}%`, height: "100%", backgroundColor: "black" }}>
-        </div>
+      <div
+        className="progress-bar"
+        style={{
+          width: "50%",
+          height: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          className="progress-bar-fill"
+          style={{
+            width: `${percentage}%`,
+            height: "100%",
+            backgroundColor: "#6c47ff",
+          }}
+        ></div>
       </div>
     );
   };
@@ -80,7 +95,7 @@ function Renders({ commander_id }) {
     if (!commander_id) {
       return (
         <div>
-          <p>No Active Renders</p>
+          <p>No Active Renders Right Now ...</p>
         </div>
       );
     }
@@ -136,34 +151,44 @@ function Renders({ commander_id }) {
     );
   };
 
+  const renderList = renders.map((render) => {
+    return (
+      <div key={render[1]} className="render_item">
+        <div className="render_info">
+          <h3>Project Name : {render[3]}</h3>
+          <p>Number of Frames : {render[2]}</p>
+          {/* <p>Frames Per Second : {render}</p> */}
+          <p>Status : {render[4]}</p>
+        </div>
+        <div className="render_buttons">
+          <button onClick={() => handleDownload(render.id)} className="btn1">
+            Download Frames(Zip)
+          </button>
+          <button
+            onClick={() => handleDownloadVideo(render.id)}
+            className="btn2"
+          >
+            Download Video(mp4)
+          </button>
+        </div>
+      </div>
+    );
+  });
+
   return (
     <div>
       <RenderingComponentStatus />
-      <h1>All Renders</h1>
-      {userId && userId !== "" && renders != [] ? (
+      {userId && userId !== "" && renders.length != 0 ? (
         <div>
-          {renders.map((render) => (
-            <div key={render[1]}>
-              <h3>{render[3]}</h3>
-              <p>{render[2]}</p>
-              {render[4] === "rendered" ? (
-                <>
-                  <p>Rendered</p>
-                  <button onClick={() => handleDownload(render[1])}>
-                    Download Frames as Zip
-                  </button>
-                  <button onClick={() => handleDownloadVideo(render[1])}>
-                    Download Video
-                  </button>
-                </>
-              ) : (
-                <p>Rendering...</p>
-              )}
-            </div>
-          ))}
+          <h2>Previous Renders</h2>
+          <div>{renderList}</div>
         </div>
       ) : (
-        <h1>Loading Data...</h1>
+        <>
+          <br />
+          <h2>No Previous Renders</h2>
+          <p>Upload a .blend file in the form to start rendering</p>
+        </>
       )}
     </div>
   );
